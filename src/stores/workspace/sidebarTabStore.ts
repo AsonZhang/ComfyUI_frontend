@@ -1,14 +1,8 @@
 import { defineStore } from 'pinia'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 
-import { useAssetsSidebarTab } from '@/composables/sidebarTabs/useAssetsSidebarTab'
-import { useJobHistorySidebarTab } from '@/composables/sidebarTabs/useJobHistorySidebarTab'
-import { useModelLibrarySidebarTab } from '@/composables/sidebarTabs/useModelLibrarySidebarTab'
 import { useNodeLibrarySidebarTab } from '@/composables/sidebarTabs/useNodeLibrarySidebarTab'
 import { t, te } from '@/i18n'
-import { useSettingStore } from '@/platform/settings/settingStore'
-import { useAppsSidebarTab } from '@/platform/workflow/management/composables/useAppsSidebarTab'
-import { useWorkflowsSidebarTab } from '@/platform/workflow/management/composables/useWorkflowsSidebarTab'
 import { useCommandStore } from '@/stores/commandStore'
 import { useMenuItemStore } from '@/stores/menuItemStore'
 import type { SidebarTabExtension } from '@/types/extensionTypes'
@@ -111,32 +105,11 @@ export const useSidebarTabStore = defineStore('sidebarTab', () => {
 
   /**
    * Register the core sidebar tabs.
+   * Customized: Only keep node-library tab
    */
   const registerCoreSidebarTabs = () => {
-    const settingStore = useSettingStore()
-    const jobHistoryTabId = 'job-history'
-    const syncJobHistoryTab = (enabled: boolean) => {
-      const hasJobHistoryTab = sidebarTabs.value.some(
-        (tab) => tab.id === jobHistoryTabId
-      )
-      if (enabled && !hasJobHistoryTab) {
-        registerSidebarTab(useJobHistorySidebarTab(), { prepend: true })
-      } else if (!enabled && hasJobHistoryTab) {
-        unregisterSidebarTab(jobHistoryTabId)
-      }
-    }
-
-    syncJobHistoryTab(settingStore.get('Comfy.Queue.QPOV2'))
-    watch(
-      () => settingStore.get('Comfy.Queue.QPOV2'),
-      (enabled) => syncJobHistoryTab(enabled)
-    )
-
-    registerSidebarTab(useAssetsSidebarTab())
+    // Only register node library tab
     registerSidebarTab(useNodeLibrarySidebarTab())
-    registerSidebarTab(useModelLibrarySidebarTab())
-    registerSidebarTab(useWorkflowsSidebarTab())
-    registerSidebarTab(useAppsSidebarTab())
 
     const menuStore = useMenuItemStore()
 

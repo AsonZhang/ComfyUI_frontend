@@ -1,6 +1,8 @@
 <template>
   <div class="comfyui-body grid size-full overflow-hidden">
-    <div id="comfyui-body-top" class="comfyui-body-top" />
+    <div id="comfyui-body-top" class="comfyui-body-top">
+      <CustomTopToolbar v-if="!linearMode && !isBuilderMode" />
+    </div>
     <div id="comfyui-body-bottom" class="comfyui-body-bottom" />
     <div id="comfyui-body-left" class="comfyui-body-left" />
     <div id="comfyui-body-right" class="comfyui-body-right" />
@@ -28,7 +30,7 @@
   <ManagerProgressToast />
   <DesktopCloudNotificationController />
   <UnloadWindowConfirmDialog v-if="!isDesktop" />
-  <MenuHamburger />
+  <QueueDrawer />
 </template>
 
 <script setup lang="ts">
@@ -46,8 +48,9 @@ import {
 } from 'vue'
 
 import { runWhenGlobalIdle } from '@/base/common/async'
-import MenuHamburger from '@/components/MenuHamburger.vue'
 import UnloadWindowConfirmDialog from '@/components/dialog/UnloadWindowConfirmDialog.vue'
+import CustomTopToolbar from '@/components/custom/CustomTopToolbar.vue'
+import QueueDrawer from '@/components/custom/QueueDrawer.vue'
 import GraphCanvas from '@/components/graph/GraphCanvas.vue'
 import GlobalToast from '@/components/toast/GlobalToast.vue'
 import InviteAcceptedToast from '@/platform/workspace/components/toasts/InviteAcceptedToast.vue'

@@ -19,7 +19,6 @@
       "
     >
       <div ref="topToolbarRef" :class="groupClasses">
-        <ComfyMenuButton />
         <SidebarIcon
           v-for="tab in tabs"
           :key="tab.id"
@@ -33,24 +32,8 @@
           :class="tab.id + '-tab-button'"
           @click="onTabClick(tab)"
         />
-        <SidebarTemplatesButton />
-      </div>
-
-      <div ref="bottomToolbarRef" class="mt-auto" :class="groupClasses">
-        <SidebarLogoutIcon
-          v-if="userStore.isMultiUserServer"
-          :is-small="isSmall"
-        />
-        <SidebarHelpCenterIcon :is-small="isSmall" />
-        <SidebarBottomPanelToggleButton v-if="!isCloud" :is-small="isSmall" />
-        <SidebarShortcutsToggleButton :is-small="isSmall" />
-        <SidebarSettingsButton :is-small="isSmall" />
       </div>
     </div>
-    <HelpCenterPopups :is-small="isSmall" />
-    <Suspense v-if="NightlySurveyController">
-      <component :is="NightlySurveyController" />
-    </Suspense>
   </nav>
 </template>
 
@@ -59,7 +42,6 @@ import { useResizeObserver } from '@vueuse/core'
 import { debounce } from 'es-toolkit/compat'
 import {
   computed,
-  defineAsyncComponent,
   nextTick,
   onBeforeUnmount,
   onMounted,
@@ -67,44 +49,27 @@ import {
   watch
 } from 'vue'
 import { useI18n } from 'vue-i18n'
+import { storeToRefs } from 'pinia'
 
-import HelpCenterPopups from '@/components/helpcenter/HelpCenterPopups.vue'
-import ComfyMenuButton from '@/components/sidebar/ComfyMenuButton.vue'
-import SidebarBottomPanelToggleButton from '@/components/sidebar/SidebarBottomPanelToggleButton.vue'
-import SidebarSettingsButton from '@/components/sidebar/SidebarSettingsButton.vue'
-import SidebarShortcutsToggleButton from '@/components/sidebar/SidebarShortcutsToggleButton.vue'
-import { isCloud, isDesktop, isNightly } from '@/platform/distribution/types'
+import SidebarIcon from './SidebarIcon.vue'
 import { useSettingStore } from '@/platform/settings/settingStore'
-import { useTelemetry } from '@/platform/telemetry'
 import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
 import { useCommandStore } from '@/stores/commandStore'
 import { useKeybindingStore } from '@/platform/keybindings/keybindingStore'
-import { useUserStore } from '@/stores/userStore'
 import { useWorkspaceStore } from '@/stores/workspaceStore'
+import { useSidebarTabStore } from '@/stores/workspace/sidebarTabStore'
 import type { SidebarTabExtension } from '@/types/extensionTypes'
 import { cn } from '@/utils/tailwindUtil'
-
-import SidebarHelpCenterIcon from './SidebarHelpCenterIcon.vue'
-import SidebarIcon from './SidebarIcon.vue'
-import SidebarLogoutIcon from './SidebarLogoutIcon.vue'
-import SidebarTemplatesButton from './SidebarTemplatesButton.vue'
-
-const NightlySurveyController =
-  isNightly && !isCloud && !isDesktop
-    ? defineAsyncComponent(
-        () => import('@/platform/surveys/NightlySurveyController.vue')
-      )
-    : undefined
 
 const { t } = useI18n()
 const workspaceStore = useWorkspaceStore()
 const settingStore = useSettingStore()
-const userStore = useUserStore()
 const commandStore = useCommandStore()
 const canvasStore = useCanvasStore()
+const sidebarTabStore = useSidebarTabStore()
+const keybindingStore = useKeybindingStore()
 const sideToolbarRef = ref<HTMLElement>()
 const topToolbarRef = ref<HTMLElement>()
-const bottomToolbarRef = ref<HTMLElement>()
 
 const isSmall = computed(
   () => settingStore.get('Comfy.Sidebar.Size') === 'small'
@@ -113,6 +78,7 @@ const sidebarLocation = computed<'left' | 'right'>(() =>
   settingStore.get('Comfy.Sidebar.Location')
 )
 const sidebarStyle = computed(() => settingStore.get('Comfy.Sidebar.Style'))
+const { activeSidebarTab: selectedTab } = storeToRefs(sidebarTabStore)
 const isConnected = computed(
   () =>
     selectedTab.value ||
@@ -120,39 +86,9 @@ const isConnected = computed(
     sidebarStyle.value === 'connected'
 )
 
-const tabs = computed(() => workspaceStore.getSidebarTabs())
-const selectedTab = computed(() => workspaceStore.sidebarTab.activeSidebarTab)
+const tabs = computed(() => sidebarTabStore.sidebarTabs)
 
-/**
- * Handle sidebar tab icon click.
- * - Emits UI button telemetry for known tabs
- * - Delegates to the corresponding toggle command
- */
 const onTabClick = async (item: SidebarTabExtension) => {
-  const telemetry = useTelemetry()
-
-  const isNodeLibraryTab = item.id === 'node-library'
-  const isModelLibraryTab = item.id === 'model-library'
-  const isWorkflowsTab = item.id === 'workflows'
-  const isAssetsTab = item.id === 'assets'
-
-  if (isNodeLibraryTab)
-    telemetry?.trackUiButtonClicked({
-      button_id: 'sidebar_tab_node_library_selected'
-    })
-  else if (isModelLibraryTab)
-    telemetry?.trackUiButtonClicked({
-      button_id: 'sidebar_tab_model_library_selected'
-    })
-  else if (isWorkflowsTab)
-    telemetry?.trackUiButtonClicked({
-      button_id: 'sidebar_tab_workflows_selected'
-    })
-  else if (isAssetsTab)
-    telemetry?.trackUiButtonClicked({
-      button_id: 'sidebar_tab_assets_media_selected'
-    })
-
   await commandStore.commands
     .find((cmd) => cmd.id === `Workspace.ToggleSidebarTab.${item.id}`)
     ?.function?.()
@@ -178,19 +114,17 @@ const ENTER_OVERFLOW_MARGIN = 20
 const EXIT_OVERFLOW_MARGIN = 50
 
 const checkOverflow = debounce(() => {
-  if (!sideToolbarRef.value || !topToolbarRef.value || !bottomToolbarRef.value)
+  if (!sideToolbarRef.value || !topToolbarRef.value)
     return
 
   const containerHeight = sideToolbarRef.value.clientHeight
   const topHeight = topToolbarRef.value.scrollHeight
-  const bottomHeight = bottomToolbarRef.value.scrollHeight
-  const contentHeight = topHeight + bottomHeight
 
   if (isOverflowing.value) {
-    isOverflowing.value = containerHeight < contentHeight + EXIT_OVERFLOW_MARGIN
+    isOverflowing.value = containerHeight < topHeight + EXIT_OVERFLOW_MARGIN
   } else {
     isOverflowing.value =
-      containerHeight < contentHeight + ENTER_OVERFLOW_MARGIN
+      containerHeight < topHeight + ENTER_OVERFLOW_MARGIN
   }
 }, 16)
 
