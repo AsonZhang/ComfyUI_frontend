@@ -1,15 +1,15 @@
 <template>
   <div
-    class="custom-top-toolbar flex h-14 items-center gap-2 px-4 border-b border-interface-stroke bg-comfy-menu-bg"
+    class="custom-top-toolbar flex h-14 items-center gap-2 border-b border-interface-stroke bg-comfy-menu-bg px-4"
   >
     <!-- Logo/Brand -->
-    <div class="flex items-center gap-2 mr-4">
-      <i class="icon-[comfy--logo] size-6 text-primary" />
+    <div class="mr-4 flex items-center gap-2">
+      <i class="size-6 text-primary icon-[comfy--logo]" />
       <span class="text-sm font-semibold">ComfyUI</span>
     </div>
 
     <!-- 分隔线 -->
-    <div class="h-6 w-px bg-interface-stroke mr-2" />
+    <div class="mr-2 h-6 w-px bg-interface-stroke" />
 
     <!-- 保存按钮 -->
     <Button
@@ -20,7 +20,7 @@
       @click="handleSave"
     >
       <i class="icon-[lucide--save] size-4" />
-      <span class="hidden md:inline ml-1">{{ t('menu.save') }}</span>
+      <span class="ml-1 hidden md:inline">{{ t('menu.save') }}</span>
     </Button>
 
     <!-- 运行按钮 -->
@@ -32,7 +32,7 @@
       @click="handleRun"
     >
       <i class="icon-[lucide--play] size-4" />
-      <span class="hidden md:inline ml-1">{{ t('menu.run') }}</span>
+      <span class="ml-1 hidden md:inline">{{ t('menu.run') }}</span>
     </Button>
 
     <!-- 中断按钮 -->
@@ -57,7 +57,9 @@
       @click="toggleQueueDrawer"
     >
       <i class="icon-[lucide--list] size-4" />
-      <span class="hidden md:inline ml-1">{{ t('sideToolbar.queueProgressOverlay.viewJobHistory') }}</span>
+      <span class="ml-1 hidden md:inline">{{
+        t('sideToolbar.queueProgressOverlay.viewJobHistory')
+      }}</span>
       <StatusBadge
         v-if="activeJobsCount > 0"
         data-testid="active-jobs-indicator"
@@ -67,7 +69,7 @@
     </Button>
 
     <!-- 分隔线 -->
-    <div class="h-6 w-px bg-interface-stroke mx-2" />
+    <div class="mx-2 h-6 w-px bg-interface-stroke" />
 
     <!-- 导出工作流按钮 -->
     <Button
@@ -78,7 +80,7 @@
       @click="handleExport"
     >
       <i class="icon-[lucide--download] size-4" />
-      <span class="hidden md:inline ml-1">{{ t('menu.exportWorkflow') }}</span>
+      <span class="ml-1 hidden md:inline">{{ t('menu.exportWorkflow') }}</span>
     </Button>
 
     <!-- 右侧占位 -->
@@ -99,7 +101,6 @@
 
 <script setup lang="ts">
 import { storeToRefs } from 'pinia'
-import { computed } from 'vue'
 import { useI18n } from 'vue-i18n'
 
 import Button from '@/components/ui/button/Button.vue'

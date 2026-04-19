@@ -40,14 +40,7 @@
 <script setup lang="ts">
 import { useResizeObserver } from '@vueuse/core'
 import { debounce } from 'es-toolkit/compat'
-import {
-  computed,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  ref,
-  watch
-} from 'vue'
+import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { storeToRefs } from 'pinia'
 
@@ -56,13 +49,11 @@ import { useSettingStore } from '@/platform/settings/settingStore'
 import { useCanvasStore } from '@/renderer/core/canvas/canvasStore'
 import { useCommandStore } from '@/stores/commandStore'
 import { useKeybindingStore } from '@/platform/keybindings/keybindingStore'
-import { useWorkspaceStore } from '@/stores/workspaceStore'
 import { useSidebarTabStore } from '@/stores/workspace/sidebarTabStore'
 import type { SidebarTabExtension } from '@/types/extensionTypes'
 import { cn } from '@/utils/tailwindUtil'
 
 const { t } = useI18n()
-const workspaceStore = useWorkspaceStore()
 const settingStore = useSettingStore()
 const commandStore = useCommandStore()
 const canvasStore = useCanvasStore()
@@ -94,7 +85,6 @@ const onTabClick = async (item: SidebarTabExtension) => {
     ?.function?.()
 }
 
-const keybindingStore = useKeybindingStore()
 const getTabTooltipSuffix = (tab: SidebarTabExtension) => {
   const shortcut = keybindingStore
     .getKeybindingByCommandId(`Workspace.ToggleSidebarTab.${tab.id}`)
@@ -114,8 +104,7 @@ const ENTER_OVERFLOW_MARGIN = 20
 const EXIT_OVERFLOW_MARGIN = 50
 
 const checkOverflow = debounce(() => {
-  if (!sideToolbarRef.value || !topToolbarRef.value)
-    return
+  if (!sideToolbarRef.value || !topToolbarRef.value) return
 
   const containerHeight = sideToolbarRef.value.clientHeight
   const topHeight = topToolbarRef.value.scrollHeight
@@ -123,8 +112,7 @@ const checkOverflow = debounce(() => {
   if (isOverflowing.value) {
     isOverflowing.value = containerHeight < topHeight + EXIT_OVERFLOW_MARGIN
   } else {
-    isOverflowing.value =
-      containerHeight < topHeight + ENTER_OVERFLOW_MARGIN
+    isOverflowing.value = containerHeight < topHeight + ENTER_OVERFLOW_MARGIN
   }
 }, 16)
 
