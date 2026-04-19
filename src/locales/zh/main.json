@@ -2022,6 +2022,7 @@
     "refresh": "刷新节点",
     "resetView": "重置视图",
     "run": "运行",
+    "openWorkflow": "打开工作流",
     "save": "保存",
     "exportWorkflow": "导出工作流",
     "exportWorkflowAPI": "导出工作流（API）",

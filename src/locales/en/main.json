@@ -1024,6 +1024,7 @@
     "runWorkflowFront": "Run workflow (Queue at front)",
     "runWorkflowDisabled": "Workflow contains unsupported nodes (highlighted red). Remove these to run the workflow.",
     "run": "Run",
+    "openWorkflow": "Open workflow",
     "save": "Save",
     "exportWorkflow": "Export workflow",
     "exportWorkflowAPI": "Export workflow (API)",

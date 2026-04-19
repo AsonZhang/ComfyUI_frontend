@@ -11,6 +11,18 @@
     <!-- 分隔线 -->
     <div class="mr-2 h-6 w-px bg-interface-stroke" />
 
+    <!-- 打开工作流按钮 -->
+    <Button
+      v-tooltip.bottom="t('menu.openWorkflow')"
+      variant="secondary"
+      class="toolbar-button"
+      :aria-label="t('menu.openWorkflow')"
+      @click="handleOpen"
+    >
+      <i class="icon-[lucide--folder-open] size-4" />
+      <span class="ml-1 hidden md:inline">{{ t('menu.openWorkflow') }}</span>
+    </Button>
+
     <!-- 保存按钮 -->
     <Button
       v-tooltip.bottom="t('menu.save')"
@@ -132,6 +144,10 @@ const queueDrawerStore = useQueueDrawerStore()
 
 const { isIdle: isExecutionIdle } = storeToRefs(executionStore)
 const { activeJobsCount } = storeToRefs(queueStore)
+
+const handleOpen = async () => {
+  await commandStore.execute('Comfy.OpenWorkflow')
+}
 
 const handleSave = async () => {
   await commandStore.execute('Comfy.SaveWorkflow')
