@@ -1,2 +1,0 @@
-set DEV_SERVER_VIDEO_URL=http://192.168.5.6:18080
-pnpm dev

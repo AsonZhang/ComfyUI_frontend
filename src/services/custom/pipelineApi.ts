@@ -1,11 +1,11 @@
 /**
  * Custom Pipeline API Service
- * Communicates with the video service internal API.
+ * Communicates with the video service through ComfyUI backend proxy.
  */
 
 import { api } from '@/scripts/api'
 
-const VIDEO_API_PREFIX = '/api/v1/internal'
+const CUSTOM_API_PREFIX = '/api/custom'
 
 export interface PipelineExecution {
   id: string
@@ -66,7 +66,7 @@ export async function executePipeline(
   workflow: object,
   extraData?: object
 ): Promise<{ executionId: string; status: string }> {
-  const response = await api.fetchApi(`${VIDEO_API_PREFIX}/pipeline/execute`, {
+  const response = await api.fetchApi(`${CUSTOM_API_PREFIX}/pipeline/execute`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({
@@ -96,7 +96,7 @@ export async function getExecutionList(params?: {
   if (params?.offset) query.set('offset', String(params.offset))
 
   const response = await api.fetchApi(
-    `${VIDEO_API_PREFIX}/pipeline/executions?${query.toString()}`
+    `${CUSTOM_API_PREFIX}/pipeline/executions?${query.toString()}`
   )
 
   if (!response.ok) {
@@ -111,7 +111,7 @@ export async function getExecutionList(params?: {
  */
 export async function getExecutionDetail(executionId: string): Promise<PipelineExecution> {
   const response = await api.fetchApi(
-    `${VIDEO_API_PREFIX}/pipeline/executions/${executionId}`
+    `${CUSTOM_API_PREFIX}/pipeline/executions/${executionId}`
   )
 
   if (!response.ok) {
@@ -126,7 +126,7 @@ export async function getExecutionDetail(executionId: string): Promise<PipelineE
  */
 export async function cancelExecution(executionId: string): Promise<{ success: boolean }> {
   const response = await api.fetchApi(
-    `${VIDEO_API_PREFIX}/pipeline/executions/${executionId}/cancel`,
+    `${CUSTOM_API_PREFIX}/pipeline/executions/${executionId}/cancel`,
     { method: 'POST' }
   )
 
@@ -146,7 +146,7 @@ export async function getExecutionStatus(executionId: string): Promise<{
   currentNode?: string
 }> {
   const response = await api.fetchApi(
-    `${VIDEO_API_PREFIX}/pipeline/executions/${executionId}/status`
+    `${CUSTOM_API_PREFIX}/pipeline/executions/${executionId}/status`
   )
 
   if (!response.ok) {
@@ -161,7 +161,7 @@ export async function getExecutionStatus(executionId: string): Promise<{
  * If id is provided, update existing pipeline; otherwise create new one.
  */
 export async function savePipeline(data: PipelineSaveRequest): Promise<PipelineSaveResponse> {
-  const response = await api.fetchApi(`${VIDEO_API_PREFIX}/pipeline/save`, {
+  const response = await api.fetchApi(`${CUSTOM_API_PREFIX}/pipeline/save`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -187,7 +187,7 @@ export async function getPipelineDetail(pipelineId: string): Promise<{
   updatedAt: number
 }> {
   const response = await api.fetchApi(
-    `${VIDEO_API_PREFIX}/pipeline/${pipelineId}`
+    `${CUSTOM_API_PREFIX}/pipeline/${pipelineId}`
   )
 
   if (!response.ok) {
@@ -205,7 +205,7 @@ export async function getTaskQueue(): Promise<{
   pending: TaskQueueItem[]
   history: TaskQueueItem[]
 }> {
-  const response = await api.fetchApi(`${VIDEO_API_PREFIX}/task_queue`)
+  const response = await api.fetchApi(`${CUSTOM_API_PREFIX}/task_queue`)
 
   if (!response.ok) {
     throw new Error(`Get task queue failed: ${response.statusText}`)
