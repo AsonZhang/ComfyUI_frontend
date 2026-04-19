@@ -1175,6 +1175,7 @@
     "loadingPanel": "正在加载{panel}面板...",
     "login": "登录",
     "logoAlt": "ComfyUI 标志",
+    "appName": "Calcuforge",
     "logs": "日志",
     "manageExtensions": "管理扩展",
     "markdown": "markdown",

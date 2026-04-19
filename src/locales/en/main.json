@@ -50,6 +50,7 @@
     "import": "Import",
     "loadAllFolders": "Load All Folders",
     "logoAlt": "ComfyUI Logo",
+    "appName": "Calcuforge",
     "comfyOrgLogoAlt": "ComfyOrg Logo",
     "comfy": "Comfy",
     "refresh": "Refresh",

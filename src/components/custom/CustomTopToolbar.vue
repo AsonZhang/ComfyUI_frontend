@@ -5,7 +5,7 @@
     <!-- Logo/Brand -->
     <div class="mr-4 flex items-center gap-2">
       <i class="size-6 text-primary icon-[comfy--logo]" />
-      <span class="text-sm font-semibold">ComfyUI</span>
+      <span class="text-sm font-semibold">{{ t('g.appName') }}</span>
     </div>
 
     <!-- 分隔线 -->
