@@ -103,7 +103,7 @@
       :aria-label="t('menu.exportWorkflowAPI')"
       @click="handleExportAPI"
     >
-      <i class="icon-[lucide--code] size-4" />
+      <i class="icon-[lucide--download] size-4" />
       <span class="ml-1 hidden md:inline">{{ t('menu.exportWorkflowAPI') }}</span>
     </Button>
 
