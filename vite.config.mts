@@ -88,6 +88,10 @@ const DEV_SEVER_FALLBACK_URL =
 const DEV_SERVER_COMFYUI_URL =
   DEV_SERVER_COMFYUI_ENV_URL || DEV_SEVER_FALLBACK_URL
 
+// Video service URL for internal API calls
+const DEV_SERVER_VIDEO_URL =
+  process.env.DEV_SERVER_VIDEO_URL || 'http://127.0.0.1:8080'
+
 const cloudProxyConfig =
   DISTRIBUTION === 'cloud' ? { secure: false, changeOrigin: true } : {}
 
@@ -178,6 +182,12 @@ export default defineConfig({
       ]
     },
     proxy: {
+      '/api/v1/internal': {
+        target: DEV_SERVER_VIDEO_URL,
+        changeOrigin: true,
+        rewrite: (path) => path
+      },
+
       '/internal': {
         target: DEV_SERVER_COMFYUI_URL,
         ...cloudProxyConfig
