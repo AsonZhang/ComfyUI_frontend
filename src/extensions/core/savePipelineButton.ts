@@ -4,6 +4,7 @@ import { useToastStore } from '@/platform/updates/common/toastStore'
 import { useExtensionService } from '@/services/extensionService'
 import { pipelineApi } from '@/services/custom/pipelineApi'
 import type { ActionBarButton } from '@/types/comfy'
+import { app } from '@/scripts/app'
 
 interface PipelineState {
   id?: string
@@ -29,21 +30,15 @@ async function savePipelineToServer() {
     return
   }
 
-  const workflowJson = activeWorkflow.activeState
-  if (!workflowJson) {
-    toastStore.add({
-      severity: 'warn',
-      summary: t('pipelineSave.noWorkflowContent'),
-      life: 3000
-    })
-    return
-  }
-
   try {
+    // 获取导出workflow的数据（跟Export Workflow相同的数据）
+    const promptData = await app.graphToPrompt()
+    const workflowJson = promptData.workflow
+
     const result = await pipelineApi.savePipeline({
       id: pipelineState.id,
-      title: pipelineState.title,
-      pipeline_json: workflowJson as object,
+      title: activeWorkflow.filename || pipelineState.title,
+      pipeline_json: workflowJson,
       is_public: 0
     })
 
