@@ -1026,6 +1026,7 @@
     "run": "Run",
     "save": "Save",
     "exportWorkflow": "Export workflow",
+    "exportWorkflowAPI": "Export workflow (API)",
     "stopRunInstant": "Stop Run (Instant)",
     "stopRunInstantTooltip": "Stop running",
     "execute": "Execute",

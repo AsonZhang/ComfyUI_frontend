@@ -83,6 +83,18 @@
       <span class="ml-1 hidden md:inline">{{ t('menu.exportWorkflow') }}</span>
     </Button>
 
+    <!-- 导出工作流(API)按钮 -->
+    <Button
+      v-tooltip.bottom="t('menu.exportWorkflowAPI')"
+      variant="secondary"
+      class="toolbar-button"
+      :aria-label="t('menu.exportWorkflowAPI')"
+      @click="handleExportAPI"
+    >
+      <i class="icon-[lucide--code] size-4" />
+      <span class="ml-1 hidden md:inline">{{ t('menu.exportWorkflowAPI') }}</span>
+    </Button>
+
     <!-- 右侧占位 -->
     <div class="flex-1" />
 
@@ -137,6 +149,10 @@ const handleInterrupt = async () => {
 
 const handleExport = async () => {
   await commandStore.execute('Comfy.ExportWorkflow')
+}
+
+const handleExportAPI = async () => {
+  await commandStore.execute('Comfy.ExportWorkflowAPI')
 }
 
 const toggleQueueDrawer = () => {
