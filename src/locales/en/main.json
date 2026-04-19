@@ -3131,6 +3131,15 @@
     "share": "Share",
     "shareTooltip": "Share workflow"
   },
+  "pipelineSave": {
+    "save": "Save",
+    "saveTooltip": "Save pipeline to server",
+    "noWorkflow": "No workflow loaded",
+    "noWorkflowContent": "No workflow content available",
+    "created": "Pipeline created successfully",
+    "updated": "Pipeline updated successfully",
+    "failed": "Failed to save pipeline"
+  },
   "shareNoOutputs": {
     "title": "App has no outputs",
     "message": "You're about to share an app without outputs. It can't be used until an output is connected.\n\nShare anyway?",

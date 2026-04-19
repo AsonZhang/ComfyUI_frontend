@@ -23,6 +23,7 @@ import './painter'
 import './previewAny'
 import './rerouteNode'
 import './saveImageExtraOutput'
+import './savePipelineButton'
 // saveMesh is loaded on-demand with load3d (see load3dLazy.ts)
 import './selectionBorder'
 import './simpleTouchSupport'
