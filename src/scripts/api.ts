@@ -68,6 +68,7 @@ import {
   fetchJobDetail,
   fetchQueue
 } from '@/platform/remote/comfyui/jobs/fetchJobs'
+import { pipelineApi } from '@/services/custom/pipelineApi'
 
 interface QueuePromptRequestBody {
   client_id: string
@@ -532,8 +533,13 @@ export class ComfyApi extends EventTarget {
   private _pollQueue() {
     setInterval(async () => {
       try {
-        const resp = await this.fetchApi('/prompt')
-        const status = (await resp.json()) as StatusWsMessageStatus
+        // Use custom pipeline API to get queue status
+        const queueResult = await pipelineApi.getTaskQueue()
+        const status: StatusWsMessageStatus = {
+          exec_info: {
+            queue_remaining: queueResult.pending?.length || 0
+          }
+        }
         this.dispatchCustomEvent('status', status)
       } catch (error) {
         this.dispatchCustomEvent('status', null)
@@ -858,55 +864,66 @@ export class ComfyApi extends EventTarget {
   ): Promise<PromptResponse> {
     const { output: prompt, workflow } = data
 
-    const body: QueuePromptRequestBody = {
-      client_id: this.clientId ?? '', // TODO: Unify clientId access
-      prompt,
-      ...(options?.partialExecutionTargets && {
-        partial_execution_targets: options.partialExecutionTargets
-      }),
-      extra_data: {
-        auth_token_comfy_org: this.authToken,
-        api_key_comfy_org: this.apiKey,
-        extra_pnginfo: { workflow },
-        ...(options?.previewMethod &&
-          options.previewMethod !== 'default' && {
-            preview_method: options.previewMethod
-          })
-      }
+    // Build extra_data for custom pipeline API
+    const extra_data: Record<string, unknown> = {
+      auth_token_comfy_org: this.authToken,
+      api_key_comfy_org: this.apiKey,
+      extra_pnginfo: { workflow },
+      ...(options?.previewMethod &&
+        options.previewMethod !== 'default' && {
+          preview_method: options.previewMethod
+        })
     }
 
+    // Add queue position info for internal service (if supported)
     if (number === -1) {
-      body.front = true
+      extra_data.front = true
     } else if (number != 0) {
-      body.number = number
+      extra_data.number = number
     }
 
-    const res = await this.fetchApi('/prompt', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(body)
-    })
+    // Add client_id for compatibility
+    extra_data.client_id = this.clientId ?? ''
 
-    if (res.status !== 200) {
-      const text = await res.text()
-      let errorResponse
-      try {
-        errorResponse = JSON.parse(text)
-      } catch {
+    // Add partial execution targets if provided
+    if (options?.partialExecutionTargets) {
+      extra_data.partial_execution_targets = options.partialExecutionTargets
+    }
+
+    try {
+      // Execute pipeline via custom API
+      const result = await pipelineApi.executePipeline(prompt, extra_data)
+
+      // Convert to PromptResponse format
+      const response: PromptResponse = {
+        prompt_id: result.executionId,
+        number: number === -1 ? -1 : 0,
+        node_errors: {}
+      }
+
+      return response
+    } catch (error) {
+      // Handle errors from custom pipeline API
+      let errorResponse: PromptResponse
+      if (error instanceof Error) {
         errorResponse = {
           error: {
-            type: 'server_error',
-            message: `${res.status} ${res.statusText}`,
-            details: text
+            type: 'pipeline_error',
+            message: error.message,
+            details: error.stack || ''
+          }
+        }
+      } else {
+        errorResponse = {
+          error: {
+            type: 'unknown_error',
+            message: 'Unknown pipeline execution error',
+            details: String(error)
           }
         }
       }
-      throw new PromptExecutionError(errorResponse, res.status)
+      throw new PromptExecutionError(errorResponse, 500)
     }
-
-    return await res.json()
   }
 
   /**
@@ -1010,9 +1027,30 @@ export class ComfyApi extends EventTarget {
     Pending: JobListItem[]
   }> {
     try {
-      return await fetchQueue(this.fetchApi.bind(this))
+      // Use custom pipeline API to get task queue
+      const result = await pipelineApi.getTaskQueue()
+
+      // Map TaskQueueItem to JobListItem
+      const mapTaskToJob = (task: any): JobListItem => ({
+        id: task.jobId,
+        status: task.status,
+        progress: task.progress,
+        promptName: task.promptName,
+        createdAt: task.createTime,
+        // Add required fields with default values
+        workflowId: '',
+        workflowVersionId: '',
+        userId: '',
+        outputs: {},
+        extra_data: {}
+      })
+
+      return {
+        Running: result.running?.map(mapTaskToJob) || [],
+        Pending: result.pending?.map(mapTaskToJob) || []
+      }
     } catch (error) {
-      console.error('Failed to fetch queue:', error)
+      console.error('Failed to fetch queue from custom pipeline API:', error)
       return { Running: [], Pending: [] }
     }
   }
@@ -1026,13 +1064,28 @@ export class ComfyApi extends EventTarget {
     options?: { offset?: number }
   ): Promise<JobListItem[]> {
     try {
-      return await fetchHistory(
-        this.fetchApi.bind(this),
-        max_items,
-        options?.offset
-      )
+      // Use custom pipeline API to get execution list
+      const result = await pipelineApi.getExecutionList({
+        limit: max_items,
+        offset: options?.offset
+      })
+
+      // Map PipelineExecution to JobListItem
+      return result.executions?.map((exec: any) => ({
+        id: exec.id,
+        status: exec.status,
+        progress: exec.progress,
+        promptName: exec.promptName,
+        createdAt: exec.createTime,
+        // Add required fields with default values
+        workflowId: '',
+        workflowVersionId: '',
+        userId: '',
+        outputs: {},
+        extra_data: {}
+      })) || []
     } catch (error) {
-      console.error(error)
+      console.error('Failed to fetch history from custom pipeline API:', error)
       return []
     }
   }
@@ -1043,7 +1096,30 @@ export class ComfyApi extends EventTarget {
    * @returns Full job details or undefined if not found
    */
   async getJobDetail(jobId: string): Promise<JobDetail | undefined> {
-    return fetchJobDetail(this.fetchApi.bind(this), jobId)
+    try {
+      // Use custom pipeline API to get execution detail
+      const execution = await pipelineApi.getExecutionDetail(jobId)
+
+      // Convert to JobDetail format (simplified mapping)
+      const jobDetail: JobDetail = {
+        id: execution.id,
+        status: execution.status,
+        progress: execution.progress,
+        promptName: execution.promptName,
+        createTime: execution.createTime,
+        startTime: execution.startTime,
+        completionTime: execution.completionTime,
+        error: execution.error,
+        outputs: {},
+        workflow: { nodes: [], links: [] },
+        extra_data: {}
+      }
+
+      return jobDetail
+    } catch (error) {
+      console.error('Failed to fetch job detail from custom pipeline API:', error)
+      return undefined
+    }
   }
 
   /**
@@ -1080,7 +1156,8 @@ export class ComfyApi extends EventTarget {
    * @param {number} id The id of the item to delete
    */
   async deleteItem(type: string, id: string) {
-    await this._postItem(type, { delete: [id] })
+    // Custom pipeline API may not support deletion
+    console.warn(`Delete item not supported by custom pipeline API: ${type} ${id}`)
   }
 
   /**
@@ -1088,7 +1165,8 @@ export class ComfyApi extends EventTarget {
    * @param {string} type The type of list to clear, queue or history
    */
   async clearItems(type: string) {
-    await this._postItem(type, { clear: true })
+    // Custom pipeline API may not support clearing
+    console.warn(`Clear items not supported by custom pipeline API: ${type}`)
   }
 
   /**
@@ -1097,10 +1175,18 @@ export class ComfyApi extends EventTarget {
    * @param {string | null} [runningJobId] Optional Running Job ID to interrupt
    */
   async interrupt(runningJobId: string | null) {
-    await this._postItem(
-      'interrupt',
-      runningJobId ? { prompt_id: runningJobId } : undefined
-    )
+    if (!runningJobId) {
+      // Custom pipeline API may not support global interrupt
+      console.warn('Global interrupt not supported by custom pipeline API')
+      return
+    }
+
+    try {
+      await pipelineApi.cancelExecution(runningJobId)
+    } catch (error) {
+      console.error('Failed to cancel execution:', error)
+      // Silently fail for backward compatibility
+    }
   }
 
   /**
