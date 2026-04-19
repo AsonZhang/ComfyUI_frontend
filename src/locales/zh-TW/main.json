@@ -2022,6 +2022,8 @@
     "refresh": "重新整理節點定義",
     "resetView": "重設畫布視圖",
     "run": "執行",
+    "save": "儲存",
+    "exportWorkflow": "匯出工作流程",
     "runWorkflow": "執行工作流程（Shift 於前方排隊）",
     "runWorkflowDisabled": "工作流程包含不支援的節點（以紅色標示）。請移除後再執行工作流程。",
     "runWorkflowFront": "執行工作流程（前方排隊）",

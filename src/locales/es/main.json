@@ -2022,6 +2022,8 @@
     "refresh": "Actualizar definiciones de nodos",
     "resetView": "Restablecer vista del lienzo",
     "run": "Ejecutar",
+    "save": "Guardar",
+    "exportWorkflow": "Exportar flujo de trabajo",
     "runWorkflow": "Ejecutar flujo de trabajo (Shift para encolar al frente)",
     "runWorkflowDisabled": "El flujo de trabajo contiene nodos no compatibles (resaltados en rojo). Elimínelos para ejecutar el flujo de trabajo.",
     "runWorkflowFront": "Ejecutar flujo de trabajo (Encolar al frente)",

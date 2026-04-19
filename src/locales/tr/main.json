@@ -2022,6 +2022,8 @@
     "refresh": "Düğüm tanımlarını yenile",
     "resetView": "Tuval görünümünü sıfırla",
     "run": "Çalıştır",
+    "save": "Kaydet",
+    "exportWorkflow": "İş akışını dışa aktar",
     "runWorkflow": "İş akışını çalıştır (Öne kuyruklamak için Shift)",
     "runWorkflowDisabled": "İş akışında desteklenmeyen düğümler var (kırmızı ile vurgulanmış). İş akışını çalıştırmak için bunları kaldırın.",
     "runWorkflowFront": "İş akışını çalıştır (Öne kuyrukla)",

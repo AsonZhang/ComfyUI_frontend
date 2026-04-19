@@ -2022,6 +2022,8 @@
     "refresh": "Actualiser les définitions des nœuds",
     "resetView": "Réinitialiser la vue du canevas",
     "run": "Exécuter",
+    "save": "Enregistrer",
+    "exportWorkflow": "Exporter le workflow",
     "runWorkflow": "Exécuter le workflow (Maj pour mettre en file d'attente en premier)",
     "runWorkflowDisabled": "Le workflow contient des nœuds non pris en charge (en rouge). Supprimez-les pour exécuter le workflow.",
     "runWorkflowFront": "Exécuter le workflow (Mettre en file d'attente en premier)",

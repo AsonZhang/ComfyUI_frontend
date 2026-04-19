@@ -2022,6 +2022,8 @@
     "refresh": "Atualizar definições de nós",
     "resetView": "Redefinir visualização da tela",
     "run": "Executar",
+    "save": "Salvar",
+    "exportWorkflow": "Exportar fluxo de trabalho",
     "runWorkflow": "Executar fluxo de trabalho (Shift para enfileirar na frente)",
     "runWorkflowDisabled": "O fluxo de trabalho contém nós não suportados (destacados em vermelho). Remova-os para executar o fluxo de trabalho.",
     "runWorkflowFront": "Executar fluxo de trabalho (Enfileirar na frente)",

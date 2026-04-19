@@ -2022,6 +2022,8 @@
     "refresh": "به‌روزرسانی تعاریف node",
     "resetView": "بازنشانی نمای بوم",
     "run": "اجرا",
+    "save": "ذخیره",
+    "exportWorkflow": "صادر کردن workflow",
     "runWorkflow": "اجرای workflow (Shift برای صف در ابتدا)",
     "runWorkflowDisabled": "workflow شامل nodeهای پشتیبانی‌نشده است (با رنگ قرمز مشخص شده‌اند). برای اجرا، این موارد را حذف کنید.",
     "runWorkflowFront": "اجرای workflow (صف در ابتدا)",

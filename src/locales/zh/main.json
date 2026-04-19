@@ -2022,6 +2022,8 @@
     "refresh": "刷新节点",
     "resetView": "重置视图",
     "run": "运行",
+    "save": "保存",
+    "exportWorkflow": "导出工作流",
     "runWorkflow": "运行工作流（Shift排在前面）",
     "runWorkflowDisabled": "工作流包含不支持的节点（已用红色突出显示）。删除这些节点以运行工作流。",
     "runWorkflowFront": "运行工作流（排在前面）",

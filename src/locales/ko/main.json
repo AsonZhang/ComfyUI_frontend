@@ -2022,6 +2022,8 @@
     "refresh": "노드 정의 새로 고침",
     "resetView": "캔버스 보기 재설정",
     "run": "실행",
+    "save": "저장",
+    "exportWorkflow": "워크플로 내보내기",
     "runWorkflow": "워크플로 실행 (시프트 키와 함께 클릭시 가장 먼저 실행)",
     "runWorkflowDisabled": "워크플로우에 지원되지 않는 노드(빨간색 강조 표시)가 포함되어 있습니다. 실행하려면 제거하세요.",
     "runWorkflowFront": "워크플로 실행 (가장 먼저 실행)",

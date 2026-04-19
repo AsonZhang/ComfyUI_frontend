@@ -2022,6 +2022,8 @@
     "refresh": "ノードを更新",
     "resetView": "ビューをリセット",
     "run": "実行する",
+    "save": "保存",
+    "exportWorkflow": "ワークフローをエクスポート",
     "runWorkflow": "ワークフローを実行する (Shiftで先頭にキュー)",
     "runWorkflowDisabled": "ワークフローに未対応のノード（赤でハイライト）が含まれています。これらを削除してワークフローを実行してください。",
     "runWorkflowFront": "ワークフローを実行する (先頭にキュー)",
