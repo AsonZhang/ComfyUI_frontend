@@ -845,7 +845,8 @@ export class ComfyApi extends EventTarget {
       // Convert to PromptResponse format
       const response: PromptResponse = {
         prompt_id: result.executionId,
-        node_errors: {}
+        node_errors: {},
+        error: ''
       }
 
       return response
@@ -969,6 +970,17 @@ export class ComfyApi extends EventTarget {
    * Gets the current state of the queue
    * @returns The currently running and queued items
    */
+  private mapStatus(s: string): JobStatus {
+    const mapping: Record<string, JobStatus> = {
+      running: 'in_progress',
+      pending: 'pending',
+      success: 'completed',
+      error: 'failed',
+      cancelled: 'cancelled'
+    }
+    return mapping[s] ?? 'pending'
+  }
+
   async getQueue(): Promise<{
     Running: JobListItem[]
     Pending: JobListItem[]
@@ -978,20 +990,9 @@ export class ComfyApi extends EventTarget {
       const result = await pipelineApi.getTaskQueue()
 
       // Map TaskQueueItem to JobListItem
-      const mapStatus = (s: string): JobStatus => {
-        const mapping: Record<string, JobStatus> = {
-          running: 'in_progress',
-          pending: 'pending',
-          success: 'completed',
-          error: 'failed',
-          cancelled: 'cancelled'
-        }
-        return mapping[s] ?? 'pending'
-      }
-
       const mapTaskToJob = (task: any): JobListItem => ({
         id: task.jobId,
-        status: mapStatus(task.status),
+        status: this.mapStatus(task.status),
         create_time: task.createTime,
         priority: 0
       })
@@ -1024,7 +1025,7 @@ export class ComfyApi extends EventTarget {
       // Map PipelineExecution to JobListItem
       return result.executions?.map((exec: any): JobListItem => ({
         id: exec.id,
-        status: mapStatus(exec.status),
+        status: this.mapStatus(exec.status),
         create_time: exec.createTime,
         priority: 0
       })) || []
@@ -1047,14 +1048,18 @@ export class ComfyApi extends EventTarget {
       // Convert to JobDetail format (simplified mapping)
       const jobDetail: JobDetail = {
         id: execution.id,
-        status: mapStatus(execution.status),
+        status: this.mapStatus(execution.status),
         create_time: execution.createTime,
         execution_start_time: execution.startTime ?? null,
         execution_end_time: execution.completionTime ?? null,
         execution_error: execution.error ? {
-          type: 'execution_error',
-          message: execution.error,
-          details: ''
+          node_id: '',
+          node_type: '',
+          exception_message: execution.error,
+          exception_type: 'ExecutionError',
+          traceback: [],
+          current_inputs: undefined,
+          current_outputs: undefined
         } : null,
         priority: 0
       }
