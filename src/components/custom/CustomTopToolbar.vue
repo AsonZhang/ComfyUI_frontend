@@ -134,6 +134,7 @@ import { useExecutionStore } from '@/stores/executionStore'
 import { useQueueStore } from '@/stores/queueStore'
 import { useRightSidePanelStore } from '@/stores/workspace/rightSidePanelStore'
 import { useQueueDrawerStore } from '@/stores/custom/queueDrawerStore'
+import { usePipelineStore } from '@/stores/custom/pipelineStore'
 import { useWorkspaceStore } from '@/stores/workspaceStore'
 import { useToastStore } from '@/platform/updates/common/toastStore'
 import { pipelineApi } from '@/services/custom/pipelineApi'
@@ -145,13 +146,12 @@ const executionStore = useExecutionStore()
 const queueStore = useQueueStore()
 const rightSidePanelStore = useRightSidePanelStore()
 const queueDrawerStore = useQueueDrawerStore()
+const pipelineStore = usePipelineStore()
 const workspaceStore = useWorkspaceStore()
 const toastStore = useToastStore()
 
 const { isIdle: isExecutionIdle } = storeToRefs(executionStore)
 const { activeJobsCount } = storeToRefs(queueStore)
-
-let savedPipelineId: string | undefined
 
 const handleOpen = async () => {
   await commandStore.execute('Comfy.OpenWorkflow')
@@ -171,14 +171,15 @@ const handleSave = async () => {
   try {
     const promptData = await app.graphToPrompt()
     const result = await pipelineApi.savePipeline({
-      id: savedPipelineId,
-      title: activeWorkflow.filename || 'Untitled Pipeline',
+      id: pipelineStore.pipelineId,
+      title: activeWorkflow.filename || pipelineStore.pipelineTitle,
       pipeline_json: promptData.workflow,
       is_public: 0
     })
 
     if (result.status === 0) {
-      savedPipelineId = result.data.pipeline.id
+      pipelineStore.pipelineId = result.data.pipeline.id
+      pipelineStore.pipelineTitle = result.data.pipeline.title
       toastStore.add({
         severity: 'success',
         summary: result.data.is_new

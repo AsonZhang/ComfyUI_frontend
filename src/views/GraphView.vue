@@ -46,6 +46,7 @@ import {
   watch,
   watchEffect
 } from 'vue'
+import { useRoute } from 'vue-router'
 
 import { runWhenGlobalIdle } from '@/base/common/async'
 import UnloadWindowConfirmDialog from '@/components/dialog/UnloadWindowConfirmDialog.vue'
@@ -94,6 +95,9 @@ import { useServerConfigStore } from '@/stores/serverConfigStore'
 import { useBottomPanelStore } from '@/stores/workspace/bottomPanelStore'
 import { useColorPaletteStore } from '@/stores/workspace/colorPaletteStore'
 import { useSidebarTabStore } from '@/stores/workspace/sidebarTabStore'
+import { usePipelineStore } from '@/stores/custom/pipelineStore'
+import { pipelineApi } from '@/services/custom/pipelineApi'
+import { useToastStore } from '@/platform/updates/common/toastStore'
 import { electronAPI } from '@/utils/envUtil'
 import BuilderFooterToolbar from '@/components/builder/BuilderFooterToolbar.vue'
 import BuilderMenu from '@/components/builder/BuilderMenu.vue'
@@ -104,6 +108,10 @@ import ManagerProgressToast from '@/workbench/extensions/manager/components/Mana
 setupAutoQueueHandler()
 useProgressFavicon()
 useBrowserTabTitle()
+
+const route = useRoute()
+const pipelineStore = usePipelineStore()
+const toastStore = useToastStore()
 
 const settingStore = useSettingStore()
 const executionStore = useExecutionStore()
@@ -288,6 +296,25 @@ void nextTick(() => {
 
 const onGraphReady = () => {
   runWhenGlobalIdle(() => {
+    // Load pipeline if id query param is present
+    const pipelineId = route.query.id as string | undefined
+    if (pipelineId) {
+      pipelineApi.getPipelineDetail(pipelineId).then((result) => {
+        const pipeline = result.data.pipeline
+        pipelineStore.pipelineId = pipeline.id
+        pipelineStore.pipelineTitle = pipeline.title
+        app.loadGraphData(pipeline.pipeline_json as never)
+      }).catch((error) => {
+        const message = error instanceof Error ? error.message : String(error)
+        toastStore.add({
+          severity: 'error',
+          summary: 'Failed to load pipeline',
+          detail: message,
+          life: 5000
+        })
+      })
+    }
+
     // Track user login when app is ready in graph view (cloud only)
     if (isCloud && authStore.isAuthenticated && !hasTrackedLogin) {
       telemetry?.trackUserLoggedIn()

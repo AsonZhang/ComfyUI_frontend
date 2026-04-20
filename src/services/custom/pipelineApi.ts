@@ -178,14 +178,7 @@ export async function savePipeline(data: PipelineSaveRequest): Promise<PipelineS
 /**
  * Get pipeline detail
  */
-export async function getPipelineDetail(pipelineId: string): Promise<{
-  id: string
-  name: string
-  workflow: object
-  description?: string
-  createdAt: number
-  updatedAt: number
-}> {
+export async function getPipelineDetail(pipelineId: string): Promise<PipelineSaveResponse> {
   const response = await api.fetchApi(
     `${CUSTOM_API_PREFIX}/pipeline/${pipelineId}`
   )
