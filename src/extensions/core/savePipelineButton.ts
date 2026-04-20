@@ -6,6 +6,8 @@ import { pipelineApi } from '@/services/custom/pipelineApi'
 import type { ActionBarButton } from '@/types/comfy'
 import { app } from '@/scripts/app'
 
+console.log('[SavePipelineButton] Module loaded, pipelineApi:', pipelineApi)
+
 interface PipelineState {
   id?: string
   title: string
@@ -17,6 +19,7 @@ const pipelineState: PipelineState = {
 }
 
 async function savePipelineToServer() {
+  console.log('[SavePipelineButton] savePipelineToServer called')
   const workspaceStore = useWorkspaceStore()
   const toastStore = useToastStore()
 
@@ -31,16 +34,19 @@ async function savePipelineToServer() {
   }
 
   try {
-    // 获取导出workflow的数据（跟Export Workflow相同的数据）
+    console.log('[SavePipelineButton] Calling app.graphToPrompt()')
     const promptData = await app.graphToPrompt()
     const workflowJson = promptData.workflow
+    console.log('[SavePipelineButton] workflowJson:', workflowJson)
 
+    console.log('[SavePipelineButton] Calling pipelineApi.savePipeline()')
     const result = await pipelineApi.savePipeline({
       id: pipelineState.id,
       title: activeWorkflow.filename || pipelineState.title,
       pipeline_json: workflowJson,
       is_public: 0
     })
+    console.log('[SavePipelineButton] Result:', result)
 
     if (result.status === 0) {
       pipelineState.id = result.data.pipeline.id
@@ -85,5 +91,7 @@ const buttons: ActionBarButton[] = [
 
 useExtensionService().registerExtension({
   name: 'Video.SavePipelineButton',
-  actionBarButtons: buttons
+  get actionBarButtons() {
+    return buttons
+  }
 })
