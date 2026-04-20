@@ -134,6 +134,10 @@ import { useExecutionStore } from '@/stores/executionStore'
 import { useQueueStore } from '@/stores/queueStore'
 import { useRightSidePanelStore } from '@/stores/workspace/rightSidePanelStore'
 import { useQueueDrawerStore } from '@/stores/custom/queueDrawerStore'
+import { useWorkspaceStore } from '@/stores/workspaceStore'
+import { useToastStore } from '@/platform/updates/common/toastStore'
+import { pipelineApi } from '@/services/custom/pipelineApi'
+import { app } from '@/scripts/app'
 
 const { t } = useI18n()
 const commandStore = useCommandStore()
@@ -141,16 +145,64 @@ const executionStore = useExecutionStore()
 const queueStore = useQueueStore()
 const rightSidePanelStore = useRightSidePanelStore()
 const queueDrawerStore = useQueueDrawerStore()
+const workspaceStore = useWorkspaceStore()
+const toastStore = useToastStore()
 
 const { isIdle: isExecutionIdle } = storeToRefs(executionStore)
 const { activeJobsCount } = storeToRefs(queueStore)
+
+let savedPipelineId: string | undefined
 
 const handleOpen = async () => {
   await commandStore.execute('Comfy.OpenWorkflow')
 }
 
 const handleSave = async () => {
-  await commandStore.execute('Comfy.SaveWorkflow')
+  const activeWorkflow = workspaceStore.workflow.activeWorkflow
+  if (!activeWorkflow) {
+    toastStore.add({
+      severity: 'warn',
+      summary: t('pipelineSave.noWorkflow'),
+      life: 3000
+    })
+    return
+  }
+
+  try {
+    const promptData = await app.graphToPrompt()
+    const result = await pipelineApi.savePipeline({
+      id: savedPipelineId,
+      title: activeWorkflow.filename || 'Untitled Pipeline',
+      pipeline_json: promptData.workflow,
+      is_public: 0
+    })
+
+    if (result.status === 0) {
+      savedPipelineId = result.data.pipeline.id
+      toastStore.add({
+        severity: 'success',
+        summary: result.data.is_new
+          ? t('pipelineSave.created')
+          : t('pipelineSave.updated'),
+        life: 3000
+      })
+    } else {
+      toastStore.add({
+        severity: 'error',
+        summary: t('pipelineSave.failed'),
+        detail: result.message,
+        life: 5000
+      })
+    }
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error)
+    toastStore.add({
+      severity: 'error',
+      summary: t('pipelineSave.failed'),
+      detail: message,
+      life: 5000
+    })
+  }
 }
 
 const handleRun = async () => {
