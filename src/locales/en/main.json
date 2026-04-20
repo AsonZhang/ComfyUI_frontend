@@ -1260,6 +1260,11 @@
     "queue": "Queue Panel"
   },
   "queue": {
+    "running": "Running",
+    "pending": "Pending",
+    "completed": "Completed",
+    "history": "History",
+    "empty": "No tasks yet",
     "initializingAlmostReady": "Initializing - Almost ready",
     "inQueue": "In queue...",
     "jobAddedToQueue": "Job queued",
