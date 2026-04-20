@@ -63,61 +63,9 @@ import type { ComfyNodeDef } from '@/schemas/nodeDefSchema'
 import type { useAuthStore } from '@/stores/authStore'
 import type { AuthHeader } from '@/types/authTypes'
 import type { NodeExecutionId } from '@/types/nodeIdentification'
-import {
-  fetchHistory,
-  fetchJobDetail,
-  fetchQueue
-} from '@/platform/remote/comfyui/jobs/fetchJobs'
+import type { JobStatus } from '@/platform/remote/comfyui/jobs/jobTypes'
 import { pipelineApi } from '@/services/custom/pipelineApi'
 
-interface QueuePromptRequestBody {
-  client_id: string
-  prompt: ComfyApiWorkflow
-  partial_execution_targets?: NodeExecutionId[]
-  extra_data: {
-    extra_pnginfo: {
-      workflow: ComfyWorkflowJSON
-    }
-    /**
-     * The auth token for the comfy org account if the user is logged in.
-     *
-     * Backend node can access this token by specifying following input:
-     * ```python
-      @classmethod
-      def INPUT_TYPES(s):
-        return {
-          "hidden": { "auth_token": "AUTH_TOKEN_COMFY_ORG"}
-        }
-
-      def execute(self, auth_token: str):
-        print(f"Auth token: {auth_token}")
-     * ```
-     */
-    auth_token_comfy_org?: string
-    /**
-     * The auth token for the comfy org account if the user is logged in.
-     *
-     * Backend node can access this token by specifying following input:
-     * ```python
-     * def INPUT_TYPES(s):
-     *   return {
-     *     "hidden": { "api_key": "API_KEY_COMFY_ORG" }
-     *   }
-     *
-     * def execute(self, api_key: str):
-     *   print(f"API Key: {api_key}")
-     * ```
-     */
-    api_key_comfy_org?: string
-    /**
-     * Override the preview method for this prompt execution.
-     * 'default' uses the server's CLI setting.
-     */
-    preview_method?: PreviewMethod
-  }
-  front?: boolean
-  number?: number
-}
 
 /**
  * Options for queuePrompt method
@@ -897,7 +845,6 @@ export class ComfyApi extends EventTarget {
       // Convert to PromptResponse format
       const response: PromptResponse = {
         prompt_id: result.executionId,
-        number: number === -1 ? -1 : 0,
         node_errors: {}
       }
 
@@ -1031,18 +978,22 @@ export class ComfyApi extends EventTarget {
       const result = await pipelineApi.getTaskQueue()
 
       // Map TaskQueueItem to JobListItem
+      const mapStatus = (s: string): JobStatus => {
+        const mapping: Record<string, JobStatus> = {
+          running: 'in_progress',
+          pending: 'pending',
+          success: 'completed',
+          error: 'failed',
+          cancelled: 'cancelled'
+        }
+        return mapping[s] ?? 'pending'
+      }
+
       const mapTaskToJob = (task: any): JobListItem => ({
         id: task.jobId,
-        status: task.status,
-        progress: task.progress,
-        promptName: task.promptName,
-        createdAt: task.createTime,
-        // Add required fields with default values
-        workflowId: '',
-        workflowVersionId: '',
-        userId: '',
-        outputs: {},
-        extra_data: {}
+        status: mapStatus(task.status),
+        create_time: task.createTime,
+        priority: 0
       })
 
       return {
@@ -1071,18 +1022,11 @@ export class ComfyApi extends EventTarget {
       })
 
       // Map PipelineExecution to JobListItem
-      return result.executions?.map((exec: any) => ({
+      return result.executions?.map((exec: any): JobListItem => ({
         id: exec.id,
-        status: exec.status,
-        progress: exec.progress,
-        promptName: exec.promptName,
-        createdAt: exec.createTime,
-        // Add required fields with default values
-        workflowId: '',
-        workflowVersionId: '',
-        userId: '',
-        outputs: {},
-        extra_data: {}
+        status: mapStatus(exec.status),
+        create_time: exec.createTime,
+        priority: 0
       })) || []
     } catch (error) {
       console.error('Failed to fetch history from custom pipeline API:', error)
@@ -1103,16 +1047,16 @@ export class ComfyApi extends EventTarget {
       // Convert to JobDetail format (simplified mapping)
       const jobDetail: JobDetail = {
         id: execution.id,
-        status: execution.status,
-        progress: execution.progress,
-        promptName: execution.promptName,
-        createTime: execution.createTime,
-        startTime: execution.startTime,
-        completionTime: execution.completionTime,
-        error: execution.error,
-        outputs: {},
-        workflow: { nodes: [], links: [] },
-        extra_data: {}
+        status: mapStatus(execution.status),
+        create_time: execution.createTime,
+        execution_start_time: execution.startTime ?? null,
+        execution_end_time: execution.completionTime ?? null,
+        execution_error: execution.error ? {
+          type: 'execution_error',
+          message: execution.error,
+          details: ''
+        } : null,
+        priority: 0
       }
 
       return jobDetail
@@ -1136,7 +1080,7 @@ export class ComfyApi extends EventTarget {
    * @param {*} type The endpoint to post to
    * @param {*} body Optional POST data
    */
-  private async _postItem(type: string, body?: Record<string, unknown>) {
+  async _postItem(type: string, body?: Record<string, unknown>) {
     try {
       await this.fetchApi('/' + type, {
         method: 'POST',
