@@ -297,13 +297,13 @@ void nextTick(() => {
 const onGraphReady = () => {
   runWhenGlobalIdle(() => {
     // Load pipeline if id query param is present
-    const pipelineId = route.query.id as string | undefined
-    if (pipelineId) {
-      pipelineApi.getPipelineDetail(pipelineId).then((result) => {
+    const pipelineIdParam = route.query.id as string | undefined
+    if (pipelineIdParam) {
+      pipelineApi.getPipelineDetail(pipelineIdParam).then((result) => {
         const pipeline = result.data.pipeline
         pipelineStore.pipelineId = pipeline.id
         pipelineStore.pipelineTitle = pipeline.title
-        app.loadGraphData(pipeline.pipeline_json as never)
+        app.loadGraphData(JSON.parse(pipeline.pipeline_json) as never)
       }).catch((error) => {
         const message = error instanceof Error ? error.message : String(error)
         toastStore.add({

@@ -2,7 +2,7 @@ import QuickLRU from '@alloc/quick-lru'
 import { useRouteHash } from '@vueuse/router'
 import { defineStore } from 'pinia'
 import { computed, ref, shallowRef, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { useRoute, useRouter } from 'vue-router'
 
 import type { DragAndScaleState } from '@/lib/litegraph/src/DragAndScale'
 import type { Subgraph } from '@/lib/litegraph/src/litegraph'
@@ -28,6 +28,7 @@ export const useSubgraphNavigationStore = defineStore(
     const workflowStore = useWorkflowStore()
     const canvasStore = useCanvasStore()
     const router = useRouter()
+    const route = useRoute()
     const routeHash = useRouteHash()
 
     /** The currently opened subgraph. */
@@ -255,11 +256,11 @@ export const useSubgraphNavigationStore = defineStore(
       }
 
       const newId = canvasStore.getCanvas().graph?.id ?? ''
-      if (!routeHash.value) await router.replace('#' + app.rootGraph.id)
+      if (!routeHash.value) await router.replace({ query: { ...route.query }, hash: '#' + app.rootGraph.id })
       const currentId = routeHash.value?.slice(1)
       if (!newId || newId === currentId) return
 
-      await router.push('#' + newId)
+      await router.push({ query: { ...route.query }, hash: '#' + newId })
     }
     //update navigation hash
     //NOTE: Doesn't apply on workflow load

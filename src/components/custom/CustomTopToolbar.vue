@@ -173,7 +173,7 @@ const handleSave = async () => {
     const result = await pipelineApi.savePipeline({
       id: pipelineStore.pipelineId,
       title: activeWorkflow.filename || pipelineStore.pipelineTitle,
-      pipeline_json: promptData.workflow,
+      pipeline_json: JSON.stringify(promptData.workflow),
       is_public: 0
     })
 

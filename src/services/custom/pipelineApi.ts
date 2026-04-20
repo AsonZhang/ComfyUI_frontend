@@ -30,7 +30,7 @@ export interface PipelineSaveRequest {
   id?: string
   title: string
   description?: string
-  pipeline_json: object
+  pipeline_json: string
   thumbnail?: string
   is_public?: number
 }
@@ -44,7 +44,7 @@ export interface PipelineSaveResponse {
       user_id: string
       title: string
       description: string
-      pipeline_json: object
+      pipeline_json: string
       thumbnail: string
       is_public: number
       created_at: string

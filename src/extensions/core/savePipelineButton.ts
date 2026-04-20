@@ -43,7 +43,7 @@ async function savePipelineToServer() {
     const result = await pipelineApi.savePipeline({
       id: pipelineState.id,
       title: activeWorkflow.filename || pipelineState.title,
-      pipeline_json: workflowJson,
+      pipeline_json: JSON.stringify(workflowJson),
       is_public: 0
     })
     console.log('[SavePipelineButton] Result:', result)
